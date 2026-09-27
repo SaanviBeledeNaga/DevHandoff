@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov pytest-asyncio pytest-mock
+
+      - name: Syntax-check all Python source files
+        run: python -m compileall backend/ frontend/ demo-repo/ -q
+
+      - name: Run demo-repo tests with coverage
+        run: |
+          python -m pytest demo-repo/tests/ -v --tb=short \
+            --cov=demo-repo --cov-report=term-missing
+        # Note: coverage threshold intentionally low until full suite is written.
+        # Raise --cov-fail-under once T2/T7 test suites are complete.
+
+      - name: Run backend tests (placeholder — expand as T2 is implemented)
+        run: |
+          if [ -d "backend/tests" ] && [ "$(ls -A backend/tests/*.py 2>/dev/null)" ]; then
+            python -m pytest backend/tests/ -v --tb=short \
+              --cov=backend --cov-report=term-missing
+          else
+            echo "No backend tests yet — add them under backend/tests/"
+          fi
+
+      - name: Lint with ruff (if installed)
+        run: |
+          pip install ruff --quiet
+          ruff check backend/ frontend/ --select=E,W,F --ignore=E501 || true
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: test
+    # Integration tests spawn a real backend process and make real HTTP calls.
+    # Ollama is NOT available in CI — verify_fixes.py's Test E (Ollama fallback)
+    # runs with a deliberately unreachable Ollama URL and asserts graceful degradation.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up demo repo git state
+        run: python setup_demo_repo.py
+
+      - name: Run integration tests (verify_fixes.py)
+        run: python verify_fixes.py

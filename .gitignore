@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment variables — NEVER commit secrets
+.env
+.env.*
+*.env
+
+# IBM Cloud / API credentials — never commit these
+ibm_credentials.env
+credentials.json
+service_account*.json
+
+# Pytest / test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.report.json
+*.log
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Nested demo repo git folder
+demo-repo/.git/
+
+# Cloned remote repos cache
+cloned_repos/
